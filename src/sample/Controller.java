@@ -22,7 +22,6 @@ import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
 public class Controller implements Initializable {
-    private boolean stopped = false;
     private double mouseX;
     private double mouseY;
     private ArrayList<Coordinates> coordinates = new ArrayList<Coordinates>();
@@ -37,6 +36,7 @@ public class Controller implements Initializable {
     private TextField move_time_inp;
     @FXML
     private TextField loop_time_inp;
+    Timeline timeline_c;
     Timeline timeline;
     public void initialize(URL location, ResourceBundle resources) {
         stop_btn.setDisable(true);
@@ -61,7 +61,7 @@ public class Controller implements Initializable {
     }
 
 
-    public void startAction() throws InterruptedException {
+    public void startAction() {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Error");
         alert.setHeaderText(null);
@@ -76,45 +76,45 @@ public class Controller implements Initializable {
             int move_tm = Integer.parseInt(move_time_inp.getText());
             int loop_tm = Integer.parseInt(loop_time_inp.getText());
 
-            Runnable task1 = () ->
-            {
 
 
-                while (stopped == false)
-                {
-                    try {
-                    while (IT.hasNext())
-                    {
+            timeline_c = new Timeline(new KeyFrame(
+                        Duration.millis(loop_tm),
+                        ae_c -> {
+                                try {
+                                while (IT.hasNext())
+                                {
 
-                         timeline = new Timeline(new KeyFrame(
-                                Duration.millis(move_tm),
-                                ae -> {
-                                    Robot robot = null;
-                                    try {
-                                        robot = new Robot();
-                                        Coordinates coor = IT.next();
-                                        robot.mouseMove((int) coor.getMouseX(), (int) coor.getMouseY());
-                                        //                    robot.mousePress(InputEvent.BUTTON1_MASK);
+                                     timeline = new Timeline(new KeyFrame(
+                                            Duration.millis(move_tm),
+                                            ae -> {
+                                                Robot robot = null;
+                                                try {
+                                                    robot = new Robot();
+                                                    Coordinates coor = IT.next();
+                                                    robot.mouseMove((int) coor.getMouseX(), (int) coor.getMouseY());
+                                                    //                    robot.mousePress(InputEvent.BUTTON1_MASK);
 
-                                    } catch (AWTException e) {
-                                        e.printStackTrace();
-                                    }
-                                }));
-                        timeline.setCycleCount(Animation.INDEFINITE);
-                        timeline.play();
+                                                } catch (AWTException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }));
+                                    timeline.setCycleCount(Animation.INDEFINITE);
+                                    timeline.play();
 
-
-
-                    }
-                        TimeUnit.MILLISECONDS.sleep(loop_tm);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+                                }
+                                    TimeUnit.MILLISECONDS.sleep(loop_tm);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
 
 
-            };
-          new Thread(task1).start();
+                        }));
+            timeline_c.setCycleCount(Animation.INDEFINITE);
+            timeline_c.play();
+
+
+
 
 
         } else if (move_time_inp.getText().isEmpty() && loop_time_inp.getText().isEmpty()) {
@@ -126,6 +126,7 @@ public class Controller implements Initializable {
             alert.setContentText("Coordinates is not available!!!");
             alert.showAndWait();
         }
+
     }
 
     public void stopAction() {
@@ -134,8 +135,7 @@ public class Controller implements Initializable {
         clear_list_btn.setDisable(false);
         move_time_inp.setDisable(false);
         loop_time_inp.setDisable(false);
-        stopped = true;
-        timeline.stop();
+
     }
 
     public void clearList() {
