@@ -36,8 +36,9 @@ public class Controller implements Initializable {
     private TextField move_time_inp;
     @FXML
     private TextField loop_time_inp;
-    Timeline timeline_c;
-    Timeline timeline;
+    Timeline timeline, tl;
+    Iterator<Coordinates> IT;
+
     public void initialize(URL location, ResourceBundle resources) {
         stop_btn.setDisable(true);
         clear_list_btn.setDisable(true);
@@ -72,49 +73,43 @@ public class Controller implements Initializable {
             clear_list_btn.setDisable(true);
             move_time_inp.setDisable(true);
             loop_time_inp.setDisable(true);
-            Iterator<Coordinates> IT = coordinates.iterator();
             int move_tm = Integer.parseInt(move_time_inp.getText());
             int loop_tm = Integer.parseInt(loop_time_inp.getText());
 
 
+            //cursor animation
+            IT = coordinates.iterator();
+            tl = new Timeline(new KeyFrame(
+                    Duration.ZERO,
+                    ae -> {
+                        Robot robot = null;
+                        if (IT.hasNext()) {
+                            try {
+                                robot = new Robot();
+                                Coordinates coor = IT.next();
+                                robot.mouseMove((int) coor.getMouseX(), (int) coor.getMouseY());
+                                //                    robot.mousePress(InputEvent.BUTTON1_MASK);
 
-            timeline_c = new Timeline(new KeyFrame(
-                        Duration.millis(loop_tm),
-                        ae_c -> {
-                                try {
-                                while (IT.hasNext())
-                                {
-
-                                     timeline = new Timeline(new KeyFrame(
-                                            Duration.millis(move_tm),
-                                            ae -> {
-                                                Robot robot = null;
-                                                try {
-                                                    robot = new Robot();
-                                                    Coordinates coor = IT.next();
-                                                    robot.mouseMove((int) coor.getMouseX(), (int) coor.getMouseY());
-                                                    //                    robot.mousePress(InputEvent.BUTTON1_MASK);
-
-                                                } catch (AWTException e) {
-                                                    e.printStackTrace();
-                                                }
-                                            }));
-                                    timeline.setCycleCount(Animation.INDEFINITE);
-                                    timeline.play();
-
-                                }
-                                    TimeUnit.MILLISECONDS.sleep(loop_tm);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-
-
-                        }));
-            timeline_c.setCycleCount(Animation.INDEFINITE);
-            timeline_c.play();
+                            } catch (AWTException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }), new KeyFrame(Duration.millis(move_tm)));
+            tl.setCycleCount(coordinates.size());
 
 
 
+            //begin animation
+            timeline = new Timeline(new KeyFrame(
+                    Duration.ZERO,
+                    ae_c ->
+                    {
+                        IT = coordinates.iterator();
+                        tl.play();
+                        if (timeline==null){ tl.stop(); }
+                    }), new KeyFrame(Duration.millis(loop_tm)));
+            timeline.setCycleCount(Animation.INDEFINITE);
+            timeline.play();
 
 
         } else if (move_time_inp.getText().isEmpty() && loop_time_inp.getText().isEmpty()) {
@@ -135,7 +130,8 @@ public class Controller implements Initializable {
         clear_list_btn.setDisable(false);
         move_time_inp.setDisable(false);
         loop_time_inp.setDisable(false);
-
+        timeline.stop();
+        tl = null;
     }
 
     public void clearList() {
