@@ -10,11 +10,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.util.Duration;
 
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -36,6 +38,8 @@ public class Controller implements Initializable {
     private TextField move_time_inp;
     @FXML
     private TextField loop_time_inp;
+    @FXML
+    private CheckBox hold_click;
     Timeline timeline, tl;
     Iterator<Coordinates> IT;
 
@@ -88,7 +92,7 @@ public class Controller implements Initializable {
                                 robot = new Robot();
                                 Coordinates coor = IT.next();
                                 robot.mouseMove((int) coor.getMouseX(), (int) coor.getMouseY());
-                                //                    robot.mousePress(InputEvent.BUTTON1_MASK);
+                                if (hold_click.isSelected()) {  robot.mousePress(InputEvent.BUTTON1_MASK); }
 
                             } catch (AWTException e) {
                                 e.printStackTrace();
@@ -98,18 +102,23 @@ public class Controller implements Initializable {
             tl.setCycleCount(coordinates.size());
 
 
-
             //begin animation
             timeline = new Timeline(new KeyFrame(
-                    Duration.ZERO,
+                    Duration.millis(loop_tm),
                     ae_c ->
                     {
                         IT = coordinates.iterator();
                         tl.play();
-                        if (timeline==null){ tl.stop(); }
-                    }), new KeyFrame(Duration.millis(loop_tm)));
-            timeline.setCycleCount(Animation.INDEFINITE);
+                        if (timeline == null) {
+                            tl.stop();
+                        }
+                    }));
+            timeline.setCycleCount(1);
             timeline.play();
+            tl.setOnFinished(event -> {
+                timeline.play();
+            });
+
 
 
         } else if (move_time_inp.getText().isEmpty() && loop_time_inp.getText().isEmpty()) {
